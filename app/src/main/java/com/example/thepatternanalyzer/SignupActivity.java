@@ -7,8 +7,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.Objects;
 
 public class SignupActivity extends AppCompatActivity {
@@ -17,6 +23,9 @@ public class SignupActivity extends AppCompatActivity {
     private android.widget.Button btnSignUp;
     private android.widget.TextView tvGoToLogin;
     private android.widget.ImageView imgBack;
+    // משתנה עבור Firebase ---
+    private FirebaseAuth mAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +44,10 @@ public class SignupActivity extends AppCompatActivity {
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnSignUp = findViewById(R.id.btnSignUp);
         tvGoToLogin = findViewById(R.id.tvGoToLogin);
+        // - אתחול Firebase ---
+        // "מפעילים" את השלט רחוק של Firebase
+        mAuth = FirebaseAuth.getInstance();
+
 
         // --- מאזין 1: חץ חזור ---
         imgBack.setOnClickListener(new View.OnClickListener() {
@@ -56,13 +69,13 @@ public class SignupActivity extends AppCompatActivity {
                 // 2. בדיקות
                 if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                     // בדיקה אם כל השדות מלאים
-                    Toast.makeText(SignupActivity.this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show(); // עכשיו זה יעבוד (בגלל ה-import)
+                    Toast.makeText(SignupActivity.this, "נא למלא את כל השדות", Toast.LENGTH_SHORT).show();
                 } else if (!password.equals(confirmPassword)) {
                     // בדיקה אם הסיסמאות תואמות
                     Toast.makeText(SignupActivity.this, "הסיסמאות אינן תואמות", Toast.LENGTH_SHORT).show();
                 } else {
-                    // אם הכל תקין
-                    Toast.makeText(SignupActivity.this, "נרשם בהצלחה: " + email, Toast.LENGTH_LONG).show();
+
+                    registerUser(email, password);
                 }
             }
         });
@@ -75,4 +88,28 @@ public class SignupActivity extends AppCompatActivity {
             }
         });
     }
+
+    // הרשמה ל-Firebase ---
+    // הפונקציה הזו מדברת עם השרת של גוגל
+    private void registerUser(String email, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // הרשמה הצליחה!
+                            Log.d("FIREBASE_AUTH", "createUserWithEmail:success");
+                            Toast.makeText(SignupActivity.this, "הרשמה הצליחה!", Toast.LENGTH_SHORT).show();
+                            // נחזיר את המשתמש למסך הלוגין
+                            finish();
+                        } else {
+                            // הרשמה נכשלה!
+                            Log.w("FIREBASE_AUTH", "createUserWithEmail:failure", task.getException());
+                            // הצג למשתמש את השגיאה האמיתית
+                            Toast.makeText(SignupActivity.this, "הרשמה נכשלה: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+    }
+    // -----------------------------------------
 }
