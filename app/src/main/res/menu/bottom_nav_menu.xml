@@ -3,15 +3,15 @@
     <item
         android:id="@+id/nav_dashboard"
         android:icon="@drawable/ic_dashboard"
-        android:title="דשבורד" />
+        android:title="Dash" />
 
     <item
         android:id="@+id/nav_spotlight"
         android:icon="@drawable/ic_spotlight"
-        android:title="זורק מניות" />
+        android:title="Spot" />
 
     <item
         android:id="@+id/nav_journal"
         android:icon="@drawable/ic_journal"
-        android:title="יומן" />
+        android:title="diary" />
 </menu>
