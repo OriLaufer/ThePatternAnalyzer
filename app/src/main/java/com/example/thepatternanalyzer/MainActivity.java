@@ -22,6 +22,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
+
 public class MainActivity extends AppCompatActivity {
 
     // 1. משתנים לרכיבים שעל המסך
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void loadFragment(Fragment fragment) {
         // מנהל הפרגמנטים - האחראי על החלפת התוכן
         FragmentManager fragmentManager = getSupportFragmentManager();
