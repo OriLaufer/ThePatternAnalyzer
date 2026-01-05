@@ -112,5 +112,6 @@ public class MainActivity extends AppCompatActivity {
 
         // בצע את השינוי!
         fragmentTransaction.commit();
+
     }
 }

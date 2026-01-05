@@ -92,20 +92,33 @@ public class SignupActivity extends AppCompatActivity {
     // הרשמה ל-Firebase ---
     // הפונקציה הזו מדברת עם השרת של גוגל
     private void registerUser(String email, String password) {
+
         mAuth.createUserWithEmailAndPassword(email, password)
+
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // הרשמה הצליחה!
+                            // 1. הרשמה הצליחה!
                             Log.d("FIREBASE_AUTH", "createUserWithEmail:success");
-                            Toast.makeText(SignupActivity.this, "הרשמה הצליחה!", Toast.LENGTH_SHORT).show();
-                            // נחזיר את המשתמש למסך הלוגין
-                            finish();
+                            Toast.makeText(SignupActivity.this, "הרשמה הצליחה! נכנס לאפליקציה...", Toast.LENGTH_SHORT).show();
+
+                            // 2. --- השינוי הגדול: מעבר ישיר למסך הראשי ---
+                            // במקום לחזור אחורה, אנחנו יוצרים כרטיס טיסה ל-MainActivity
+                            android.content.Intent intent = new android.content.Intent(SignupActivity.this, MainActivity.class);
+
+                            // 3. ניקוי היסטוריה (חשוב!)
+                            // זה אומר: "תמחק את מסך הלוגין וההרשמה מהזיכרון".
+                            // אם המשתמש ילחץ "חזור" במסך הראשי - הוא ייצא מהאפליקציה.
+                            intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                            // 4. טוס!
+                            startActivity(intent);
+                            finish(); // סגור את המסך הזה
+
                         } else {
                             // הרשמה נכשלה!
                             Log.w("FIREBASE_AUTH", "createUserWithEmail:failure", task.getException());
-                            // הצג למשתמש את השגיאה האמיתית
                             Toast.makeText(SignupActivity.this, "הרשמה נכשלה: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                     }

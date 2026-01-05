@@ -1,14 +1,272 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#0B1121"
+    android:fillViewport="true"
     tools:context=".JournalFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:padding="16dp">
 
-</FrameLayout>
+        <!-- ========================================== -->
+        <!-- כרטיס הטופס (New Trade Entry) -->
+        <!-- ========================================== -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardNewTrade"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:cardBackgroundColor="#151E2C"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <!-- כותרת ואייקון עט -->
+                <ImageView
+                    android:id="@+id/iconPen"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_journal"
+                    app:tint="#818CF8"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvFormTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="New Trade Entry"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    app:layout_constraintStart_toEndOf="@id/iconPen"
+                    app:layout_constraintTop_toTopOf="@id/iconPen"
+                    app:layout_constraintBottom_toBottomOf="@id/iconPen" />
+
+                <!-- שדה 1: TICKER -->
+                <TextView
+                    android:id="@+id/lblTicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="TICKER"
+                    android:textColor="#64748B"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/iconPen" />
+
+                <!-- שימוש ברקע המעוגל הקיים, צבוע לשחור -->
+                <EditText
+                    android:id="@+id/etTicker"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#0F172A"
+                    android:hint="$ XYZ"
+                    android:textColorHint="#475569"
+                    android:textColor="#FFFFFF"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:inputType="textCapCharacters"
+                    app:layout_constraintTop_toBottomOf="@id/lblTicker" />
+
+                <!-- שדה 2: QTY (כמות) - חצי רוחב -->
+                <TextView
+                    android:id="@+id/lblQty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="QTY"
+                    android:textColor="#64748B"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/etTicker" />
+
+                <EditText
+                    android:id="@+id/etQty"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#0F172A"
+                    android:text="10"
+                    android:textColor="#FFFFFF"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:inputType="number"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/etPrice"
+                    app:layout_constraintTop_toBottomOf="@id/lblQty" />
+
+                <!-- שדה 3: PRICE (מחיר) - חצי רוחב -->
+                <TextView
+                    android:id="@+id/lblPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginStart="8dp"
+                    android:text="PRICE"
+                    android:textColor="#64748B"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="@+id/etPrice"
+                    app:layout_constraintTop_toBottomOf="@id/etTicker" />
+
+                <EditText
+                    android:id="@+id/etPrice"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#0F172A"
+                    android:text="150.00"
+                    android:textColor="#FFFFFF"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:inputType="numberDecimal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/etQty"
+                    app:layout_constraintTop_toBottomOf="@id/lblPrice" />
+
+                <!-- שדה 4: TRIGGER PATTERN (רשימה נפתחת) -->
+                <TextView
+                    android:id="@+id/lblPattern"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="TRIGGER PATTERN"
+                    android:textColor="#64748B"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/etQty" />
+
+                <!-- קופסה שמחזיקה את ה-Spinner -->
+                <FrameLayout
+                    android:id="@+id/spinnerContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#0F172A"
+                    app:layout_constraintTop_toBottomOf="@id/lblPattern">
+
+                    <Spinner
+                        android:id="@+id/spinnerPattern"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingStart="8dp"
+                        android:backgroundTint="#FFFFFF"/> <!-- חץ לבן -->
+
+                    <!-- שים לב: בפועל ב-Java נצטרך להסתיר אותו כשבוחרים משהו -->
+                    <TextView
+                        android:id="@+id/tvSpinnerHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Select a pattern..."
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="16dp"/>
+
+                </FrameLayout>
+
+                <!-- כפתור שמירה ירוק -->
+                <Button
+                    android:id="@+id/btnAddTrade"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:layout_marginTop="24dp"
+                    android:text="Add Trade To Journal"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:backgroundTint="#10B981"
+                    app:cornerRadius="12dp"
+                    app:layout_constraintTop_toBottomOf="@id/spinnerContainer" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ========================================== -->
+        <!-- רשימת ההיסטוריה (Recent History) -->
+        <!-- ========================================== -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#151E2C"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:layout_constraintTop_toBottomOf="@id/cardNewTrade"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- כותרת עם אייקון שעון -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_history"
+                        app:tint="#E2E8F0" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Recent History"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+        <!-- רשימה דינמית שתתמלא ע"י הג'אווה -->
+                <!-- *** כאן השינוי! *** -->
+                <!-- מחקנו את MSFT ו-AAPL ושמנו את ה-RecyclerView במקום -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerTrades"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
+

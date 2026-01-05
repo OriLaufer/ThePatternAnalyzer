@@ -1,14 +1,402 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#0B1121"
+    android:fillViewport="true"
     tools:context=".SpotlightFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="wrap_content"
+        android:padding="16dp">
 
-</FrameLayout>
+        <!-- כותרת ראשית -->
+        <TextView
+            android:id="@+id/tvSpotlightTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pattern Spotlight"
+            android:textColor="#E2E8F0"
+            android:textSize="22dp"
+            android:fontFamily="sans-serif-black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- ================================================= -->
+        <!-- חלק 1: כרטיס הבנייה (Pattern Builder Card) -->
+        <!-- ================================================= -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardPatternBuilder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="#1E293B"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSpotlightTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <!-- אייקון משפך וכותרת -->
+                <ImageView
+                    android:id="@+id/iconFilter"
+                    android:layout_width="16dp"
+                    android:layout_height="19dp"
+                    android:src="@drawable/ic_filter"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#6366F1" />
+
+                <TextView
+                    android:id="@+id/tvCardTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Pattern Builder"
+                    android:textColor="#E2E8F0"
+                    android:textStyle="bold"
+                    android:textSize="18dp"
+                    app:layout_constraintStart_toEndOf="@id/iconFilter"
+                    app:layout_constraintTop_toTopOf="@id/iconFilter"
+                    app:layout_constraintBottom_toBottomOf="@id/iconFilter" />
+
+                <!-- שדה שם האסטרטגיה -->
+                <TextView
+                    android:id="@+id/lblStrategyName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="STRATEGY NAME"
+                    android:textColor="#94A3B8"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/iconFilter"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilStrategy"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    app:boxStrokeColor="#6366F1"
+                    app:boxStrokeWidth="1dp"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:hintEnabled="false"
+                    app:layout_constraintTop_toBottomOf="@id/lblStrategyName">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etStrategyName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#0F172A"
+                        android:hint="e.g., Golden Cross"
+                        android:textColor="#E2E8F0"
+                        android:textColorHint="#64748B"
+                        android:textSize="16dp"
+                        android:padding="12dp"
+                        android:minHeight="48dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- שדות המחיר (חצי-חצי) -->
+                <TextView
+                    android:id="@+id/lblMinPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="MIN $"
+                    android:textColor="#94A3B8"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/tilStrategy"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMinPrice"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="8dp"
+                    app:boxStrokeColor="#6366F1"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:hintEnabled="false"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/tilMaxPrice"
+                    app:layout_constraintTop_toBottomOf="@id/lblMinPrice">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMinPrice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#0F172A"
+                        android:text="10"
+                        android:textColor="#E2E8F0"
+                        android:inputType="numberDecimal"
+                        android:padding="16dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/lblMaxPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginStart="8dp"
+                    android:text="MAX $"
+                    android:textColor="#94A3B8"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/tilStrategy"
+                    app:layout_constraintStart_toStartOf="@+id/tilMaxPrice" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilMaxPrice"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginStart="8dp"
+                    app:boxStrokeColor="#6366F1"
+                    app:boxCornerRadiusTopStart="8dp"
+                    app:boxCornerRadiusTopEnd="8dp"
+                    app:boxCornerRadiusBottomStart="8dp"
+                    app:boxCornerRadiusBottomEnd="8dp"
+                    app:hintEnabled="false"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tilMinPrice"
+                    app:layout_constraintTop_toBottomOf="@id/lblMaxPrice">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMaxPrice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#0F172A"
+                        android:text="200"
+                        android:textColor="#E2E8F0"
+                        android:inputType="numberDecimal"
+                        android:padding="16dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- כפתור AI Validate -->
+                <Button
+                    android:id="@+id/btnAiValidate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="✨  AI Validate Strategy"
+                    android:textColor="#A78BFA"
+                    android:textSize="15sp"
+                    app:backgroundTint="@android:color/transparent"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:strokeColor="#A78BFA"
+                    app:strokeWidth="1dp"
+                    app:cornerRadius="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/tilMinPrice" />
+
+                <!-- כפתור סריקה -->
+                <Button
+                    android:id="@+id/btnRunScanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Run Scanner"
+                    android:textSize="16dp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:backgroundTint="#6366F1"
+                    app:cornerRadius="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/btnAiValidate" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ================================================= -->
+        <!-- חלק 2: רשימת התוצאות (Top Candidates) -->
+        <!-- ================================================= -->
+
+        <TextView
+            android:id="@+id/tvResultsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="TOP CANDIDATES"
+            android:textColor="#94A3B8"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/cardPatternBuilder"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- מיכל לרשימה -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:padding="16dp"
+            android:background="@drawable/header_background"
+            android:backgroundTint="#0F172A"
+            app:layout_constraintTop_toBottomOf="@id/tvResultsTitle">
+
+            <!-- פריט 1: NVDA -->
+            <LinearLayout
+                android:id="@+id/itemNVDA"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <!-- לוגו -->
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#1E293B"
+                    android:gravity="center"
+                    android:text="NVDA"
+                    android:textColor="#E2E8F0"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <!-- טקסטים -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:text="$NVDA"
+                            android:textColor="#E2E8F0"
+                            android:textStyle="bold"
+                            android:textSize="16dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                        <TextView
+                            android:text="+5.2%"
+                            android:textColor="#10B981"
+                            android:textSize="16dp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:text="$450.20"
+                        android:textColor="#64748B"
+                        android:textSize="16dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <!-- כפתור הוספה (+) -->
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#1E293B"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_plus"
+                    app:tint="#6366F1" />
+            </LinearLayout>
+
+            <!-- קו מפריד -->
+            <View
+                android:id="@+id/divider1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="#1E293B"
+                app:layout_constraintTop_toBottomOf="@id/itemNVDA" />
+
+            <!-- פריט 2: AMD -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                app:layout_constraintTop_toBottomOf="@id/divider1">
+
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#1E293B"
+                    android:gravity="center"
+                    android:text="AMD"
+                    android:textColor="#E2E8F0"
+                    android:textSize="16dp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:text="$AMD"
+                            android:textSize="16dp"
+                            android:textColor="#E2E8F0"
+                            android:textStyle="bold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                        <TextView
+                            android:text="+3.8%"
+                            android:textColor="#10B981"
+                            android:textSize="16dp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="8dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:text="$112.45"
+                        android:textColor="#64748B"
+                        android:textSize="16dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:background="@drawable/header_background"
+                    android:backgroundTint="#1E293B"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_plus"
+                    app:tint="#6366F1" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
