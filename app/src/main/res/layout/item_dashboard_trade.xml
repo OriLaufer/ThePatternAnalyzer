@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:paddingBottom="4dp">
+
+    <!-- לוגו המניה -->
+    <TextView
+        android:id="@+id/tvDashLogo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/header_backround"
+        android:backgroundTint="#334155"
+        android:gravity="center"
+        tools:text="AAPL"
+        android:textColor="#94A3B8"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- רווח (בצד ימין - העוגן הימני) -->
+    <TextView
+        android:id="@+id/tvDashProfit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="+$680.00"
+        android:textColor="#10B981"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- שם המניה (מתוח בין הלוגו לרווח) -->
+    <TextView
+        android:id="@+id/tvDashTicker"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        tools:text="$AAPL"
+        android:textColor="#E2E8F0"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/tvDashLogo"
+        app:layout_constraintEnd_toStartOf="@id/tvDashProfit"
+        app:layout_constraintTop_toTopOf="@id/tvDashLogo" />
+
+    <!-- אחוזים (מתחת לרווח בצד ימין) -->
+    <TextView
+        android:id="@+id/tvDashPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="+3.8%"
+        android:textColor="#10B981"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDashProfit" />
+
+    <!-- פרטים (מתחת לשם המניה, מתוח עד האחוזים) -->
+    <TextView
+        android:id="@+id/tvDashDetails"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        tools:text="100 shares @ $175.50"
+        android:textColor="#64748B"
+        android:textSize="14sp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@id/tvDashTicker"
+        app:layout_constraintEnd_toStartOf="@id/tvDashPercent"
+        app:layout_constraintTop_toBottomOf="@id/tvDashTicker" />
+
+    <!-- כפתור סגירה (עכשיו הוא מתחת לפרטים, לא ללוגו!) -->
+    <Button
+        android:id="@+id/btnClosePosition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Close Position"
+        android:textSize="14sp"
+        android:backgroundTint="#0F172A"
+        android:textColor="#E2E8F0"
+        app:cornerRadius="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvDashDetails"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,19 +1,18 @@
 package com.example.thepatternanalyzer;
 
-// --- 1. ייבוא הכלים (Imports) ---
-// אלו הספריות שנותנות לנו את היכולת להשתמש ברכיבים כמו כפתורים, רשימות, ו-Firebase.
+import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log; // לכתיבת הודעות לוג (למפתחים)
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView; // לזיהוי לחיצות ברשימה
-import android.widget.ArrayAdapter; // לחיבור נתונים לרשימה נפתחת
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast; // להודעות קופצות קטנות למשתמש
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,46 +28,38 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-// --- המחלקה הראשית של מסך היומן ---
 public class JournalFragment extends Fragment {
 
-    // --- 2. הגדרת משתנים (ה"שלטים" לרכיבי המסך) ---
-    private EditText etTicker;      // שדה הזנת שם המניה (כמו AAPL)
-    private EditText etQty;         // שדה הזנת כמות
-    private EditText etPrice;       // שדה הזנת מחיר
-    private Spinner spinnerPattern; // הרשימה הנפתחת לבחירת תבנית
-    private TextView tvSpinnerHint; // הטקסט "Select a pattern..." שמופיע כרמז
-    private Button btnAddTrade;     // כפתור ההוספה הירוק
-    private RecyclerView recyclerTrades; // הרשימה הנגללת למטה (ההיסטוריה)
+    private EditText etTicker, etQty, etPrice;
+    private Spinner spinnerPattern;
+    private TextView tvSpinnerHint;
+    private Button btnAddTrade;
+    private RecyclerView recyclerTrades;
 
-    // --- 3. משתנים לניהול המידע ---
-    private FirebaseFirestore db;   // החיבור למסד הנתונים בענן
-    private FirebaseAuth auth;      // החיבור למערכת המשתמשים (מי מחובר כרגע?)
-    private TradesAdapter adapter;  // ה"מנהל" שמסדר את הנתונים בתוך הרשימה הויזואלית
-    private List<Trade> tradeList;  // רשימה בזיכרון המחשב שמחזיקה את כל העסקאות
+    private FirebaseFirestore db;
+    private FirebaseAuth auth;
+    private TradesAdapter adapter;
+    private List<Trade> tradeList;
 
-    // בנאי ריק (חובה באנדרואיד כדי שהאפליקציה לא תקרוס)
     public JournalFragment() {
+        // בנאי ריק חובה
     }
 
-    // --- 4. יצירת המראה (ניפוח ה-XML) ---
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // טוען את קובץ העיצוב fragment_journal.xml ומכין אותו לתצוגה
         return inflater.inflate(R.layout.fragment_journal, container, false);
     }
 
-    // --- 5. הפונקציה הראשית שרצה כשהמסך מוכן ---
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // א. אתחול הכלים של Firebase
+        // אתחול Firebase
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // ב. חיבור המשתנים לרכיבים ב-XML לפי ה-ID שלהם
+        // חיבור למסך
         etTicker = view.findViewById(R.id.etTicker);
         etQty = view.findViewById(R.id.etQty);
         etPrice = view.findViewById(R.id.etPrice);
@@ -77,44 +68,65 @@ public class JournalFragment extends Fragment {
         btnAddTrade = view.findViewById(R.id.btnAddTrade);
         recyclerTrades = view.findViewById(R.id.recyclerTrades);
 
-        // ג. הגדרת הרשימה הנפתחת (מה יופיע כשלוחצים עליה?)
+        // הגדרת הרכיבים
         setupSpinner();
-
-        // ד. הכנת רשימת ההיסטוריה (שתהיה מוכנה לקבל נתונים)
         setupRecyclerView();
 
-        // ה. *** השורה שמפעילה את הכפתור ***
-        // אנחנו אומרים: "כשמישהו לוחץ (Click) על הכפתור, תפעיל את הפונקציה saveTradeToFirebase"
+        // כפתור שמירה
         btnAddTrade.setOnClickListener(v -> saveTradeToFirebase());
 
-        // ו. הפעלת ההאזנה לענן (כדי שהרשימה תתעדכן אוטומטית אם יש שינויים)
+        // האזנה לשינויים בנתונים
         listenToTrades();
     }
 
-    // --- פונקציה להגדרת הרשימה הנפתחת ---
+    // --- הגדרת ה-Spinner (עם צבעים מתוקנים) ---
     private void setupSpinner() {
         List<String> patterns = new ArrayList<>();
-        // פריט ראשון ריק כדי שהמשתמש יראה את ה-Hint שלנו ("Select a pattern...")
-        patterns.add("");
+        patterns.add(""); // פריט ראשון ריק
         patterns.add("Momentum");
         patterns.add("Bull Flag");
         patterns.add("Gap & Go");
         patterns.add("Reversal");
         patterns.add("Breakout");
 
-        // מתאם פשוט שמחבר את הרשימה ל-Spinner
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, patterns);
+        // יצירת מתאם מותאם אישית כדי שהטקסט יהיה לבן כשהוא נבחר
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_item, patterns) {
+            @NonNull
+            @Override
+            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                // העיצוב של הפריט שרואים בתוך התיבה הסגורה
+                View view = super.getView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                tv.setTextColor(Color.WHITE); // טקסט לבן!
+                tv.setTextSize(16); // גודל טקסט כמו בשאר השדות
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+                // העיצוב של הרשימה שנפתחת
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if (position == 0) {
+                    // מסתירים את הפריט הראשון הריק מהרשימה
+                    tv.setHeight(0);
+                } else {
+                    tv.setTextColor(Color.BLACK); // שחור על רקע לבן (ברירת מחדל)
+                }
+                return view;
+            }
+        };
+
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPattern.setAdapter(spinnerAdapter);
 
-        // מאזין לבחירה ב-Spinner (כדי להעלים/להציג את הרמז)
+        // הסתרת הרמז ("Select a pattern...") כשבוחרים משהו
         spinnerPattern.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
-                    // אם נבחר הפריט הראשון (הריק), נציג את ה-Hint
                     tvSpinnerHint.setVisibility(View.VISIBLE);
                 } else {
-                    // אחרת, נסתיר את ה-Hint כדי לראות את הבחירה
                     tvSpinnerHint.setVisibility(View.INVISIBLE);
                 }
             }
@@ -126,118 +138,120 @@ public class JournalFragment extends Fragment {
         });
     }
 
-    // --- פונקציה להכנת רשימת ההיסטוריה ---
+    // --- הגדרת הרשימה והמחיקה ---
     private void setupRecyclerView() {
-        tradeList = new ArrayList<>(); // יצירת רשימה ריקה
-        adapter = new TradesAdapter(tradeList); // יצירת המתאם וחיבורו לרשימה
-        recyclerTrades.setLayoutManager(new LinearLayoutManager(getContext())); // סידור הפריטים אחד מתחת לשני
-        recyclerTrades.setAdapter(adapter); // חיבור המתאם לרכיב הויזואלי
+        tradeList = new ArrayList<>();
+
+        // כאן אנחנו יוצרים את ה-Adapter ומעבירים לו את פונקציית המחיקה (deleteTrade)
+        adapter = new TradesAdapter(tradeList, trade -> deleteTrade(trade));
+
+        recyclerTrades.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerTrades.setAdapter(adapter);
     }
 
-    // --- פונקציה לשמירת העסקה (מופעלת בלחיצה על הכפתור) ---
+    // --- פונקציה למחיקת עסקה מ-Firebase ---
+    private void deleteTrade(Trade trade) {
+        if (auth.getCurrentUser() == null || trade.getId() == null) return;
+        String userId = auth.getCurrentUser().getUid();
+
+        // מחיקת המסמך הספציפי לפי ה-ID שלו
+        db.collection("users").document(userId).collection("trades")
+                .document(trade.getId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "Trade deleted", Toast.LENGTH_SHORT).show();
+                    // לא צריך למחוק מהרשימה ידנית - הפונקציה listenToTrades תעשה את זה אוטומטית!
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error deleting: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    // --- שמירת עסקה חדשה ---
     private void saveTradeToFirebase() {
-        // 1. איסוף המידע: לוקחים את הטקסט מהשדות ומנקים רווחים מיותרים
-        String ticker = etTicker.getText().toString().trim().toUpperCase(); // הופך לאותיות גדולות (AAPL)
+        // 1. קריאת הנתונים
+        String ticker = etTicker.getText().toString().trim().toUpperCase();
         String qtyStr = etQty.getText().toString().trim();
         String priceStr = etPrice.getText().toString().trim();
 
-        // בדיקה איזו תבנית נבחרה
         String pattern = "";
         if (spinnerPattern.getSelectedItem() != null) {
             pattern = spinnerPattern.getSelectedItem().toString();
         }
 
-        // 2. בדיקות תקינות (Validations): מוודאים שהמשתמש לא שכח למלא שדות
-        if (ticker.isEmpty()) {
-            etTicker.setError("נא להזין שם מניה"); // מציג שגיאה אדומה בשדה
-            return; // עוצר את הפונקציה כאן
-        }
-        if (qtyStr.isEmpty()) {
-            etQty.setError("נא להזין כמות");
+        // 2. בדיקות תקינות
+        if (ticker.isEmpty() || qtyStr.isEmpty() || priceStr.isEmpty()) {
+            Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (priceStr.isEmpty()) {
-            etPrice.setError("נא להזין מחיר");
-            return;
-        }
-        // בדיקה שהמשתמש בחר תבנית אמיתית ולא את הריקה
-        if (pattern.isEmpty() || spinnerPattern.getSelectedItemPosition() == 0) {
-            Toast.makeText(getContext(), "נא לבחור תבנית מסחר", Toast.LENGTH_SHORT).show();
+        if (pattern.isEmpty()) {
+            Toast.makeText(getContext(), "Please select a pattern", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 3. המרת נתונים: הופכים את הטקסט ("10") למספרים שהמחשב מבין (10)
+        // 3. המרות
         int quantity;
         double price;
         try {
             quantity = Integer.parseInt(qtyStr);
             price = Double.parseDouble(priceStr);
         } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "המספרים אינם תקינים", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Invalid numbers", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 4. בדיקת זהות: מי המשתמש שמנסה לשמור?
         if (auth.getCurrentUser() == null) return;
         String userId = auth.getCurrentUser().getUid();
+        long timestamp = System.currentTimeMillis();
 
-        long timestamp = System.currentTimeMillis(); // הזמן הנוכחי
-
-        // 5. יצירת החבילה: בונים אובייקט Trade מסודר עם כל הנתונים
+        // 4. יצירת האובייקט
         Trade newTrade = new Trade(null, userId, ticker, quantity, price, pattern, timestamp);
 
-        // 6. השליחה לענן (Firebase):
-        // הנתיב: משתמשים -> [ה-ID שלך] -> trades -> [מסמך חדש]
+        // 5. שמירה
         db.collection("users").document(userId).collection("trades")
                 .add(newTrade)
                 .addOnSuccessListener(documentReference -> {
-                    // אם השמירה הצליחה:
-                    Toast.makeText(getContext(), "העסקה נשמרה בהצלחה!", Toast.LENGTH_SHORT).show();
-                    clearForm(); // מנקים את הטופס
+                    Toast.makeText(getContext(), "Trade Logged Successfully!", Toast.LENGTH_SHORT).show();
+                    clearForm(); // ניקוי הטופס
                 })
-                .addOnFailureListener(e -> {
-                    // אם הייתה שגיאה:
-                    Toast.makeText(getContext(), "שגיאה בשמירה: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
     }
 
-    // --- פונקציה להאזנה לנתונים בזמן אמת ---
+    // --- האזנה לנתונים (עדכון הרשימה) ---
     private void listenToTrades() {
         if (auth.getCurrentUser() == null) return;
         String userId = auth.getCurrentUser().getUid();
 
-        // אנחנו אומרים ל-Firebase: "תסתכל על התיקייה הזו, ותודיע לי כל פעם שמשהו משתנה"
         db.collection("users").document(userId).collection("trades")
-                .orderBy("timestamp", Query.Direction.DESCENDING) // סדר מהחדש לישן
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Log.e("Firestore", "Listen failed.", error);
                         return;
                     }
 
-                    // אם הגיע מידע חדש
                     if (value != null) {
-                        tradeList.clear(); // מוחקים את הרשימה הישנה בזיכרון
+                        tradeList.clear();
                         for (DocumentSnapshot doc : value.getDocuments()) {
-                            // הופכים כל מסמך מהענן לאובייקט Trade
                             Trade trade = doc.toObject(Trade.class);
                             if (trade != null) {
-                                trade.setId(doc.getId()); // שומרים את ה-ID האמיתי
-                                tradeList.add(trade); // מוסיפים לרשימה
+                                trade.setId(doc.getId()); // שומרים את ה-ID (חשוב למחיקה!)
+                                tradeList.add(trade);
                             }
                         }
-                        // מודיעים למתאם: "הנתונים השתנו! תרענן את התצוגה!"
                         adapter.notifyDataSetChanged();
                     }
                 });
     }
 
-    // --- פונקציית עזר לניקוי הטופס ---
+    // --- ניקוי הטופס ---
     private void clearForm() {
         etTicker.setText("");
-        etQty.setText("10"); // ברירת מחדל
+        etQty.setText("10");
         etPrice.setText("");
         spinnerPattern.setSelection(0); // מחזיר להתחלה
-        etTicker.requestFocus(); // שם את הסמן בשדה הראשון לנוחות
+        etTicker.requestFocus();
     }
 }

@@ -9,7 +9,9 @@ public class Trade {
     private String userId;      // המזהה של המשתמש שיצר את העסקה (כדי שלא נערבב בין משתמשים)
     private String ticker;      // שם המניה (למשל: AAPL)
     private int quantity;       // כמות המניות (מספר שלם)
-    private double entryPrice;  // מחיר כניסה (יכול להיות עם נקודה עשרונית)
+    private double entryPrice;// מחיר כניסה (יכול להיות עם נקודה עשרונית)
+    private double exitPrice;   // *** מחיר יציאה
+
     private String pattern;     // שם התבנית (למשל: Momentum)
     private String status;      // הסטטוס: "OPEN" (פתוח) או "CLOSED" (סגור)
     private long timestamp;     // הזמן שבו העסקה נוצרה (בשניות מחשב)
@@ -32,6 +34,7 @@ public class Trade {
         this.pattern = pattern;
         this.timestamp = timestamp;
         this.status = "OPEN"; // כברירת מחדל, כל עסקה חדשה היא "פתוחה"
+        this.exitPrice = 0.0; // אתחול ל-0
     }
 
     // 3. גטרים וסטרים (Getters & Setters)
@@ -101,4 +104,9 @@ public class Trade {
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
+    public double getExitPrice()
+    { return exitPrice; }
+
+    public void setExitPrice(double exitPrice)
+    { this.exitPrice = exitPrice; }
 }
