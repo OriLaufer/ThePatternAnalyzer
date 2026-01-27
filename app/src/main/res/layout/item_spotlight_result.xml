@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"> <!-- רווח בין שורות -->
+
+    <!-- לוגו המניה -->
+    <TextView
+        android:id="@+id/tvLogo"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/header_background"
+        android:backgroundTint="#334155"
+        android:gravity="center"
+        tools:text="NVDA"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- פרטי המניה (שם, אחוזים, מחיר) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnAdd"
+        app:layout_constraintStart_toEndOf="@id/tvLogo"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvTicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="$NVDA"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tvChangePercent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                tools:text="+0.00%"
+                android:textColor="#10B981"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="$0.00"
+            android:textColor="#64748B"
+            android:textSize="12sp"/>
+    </LinearLayout>
+
+    <!-- כפתור הפלוס (הוספה ליומן) -->
+    <ImageView
+        android:id="@+id/btnAdd"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:src="@drawable/ic_plus"
+        app:tint="#6366F1"
+        android:background="@drawable/header_background"
+        android:backgroundTint="#1E293B"
+        android:padding="8dp"
+        android:contentDescription="Add to journal"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

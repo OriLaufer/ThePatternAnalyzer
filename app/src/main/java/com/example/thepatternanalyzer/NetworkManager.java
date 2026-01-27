@@ -1,70 +1,92 @@
 package com.example.thepatternanalyzer;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+// ייבוא הספריות הדרושות לתקשורת רשת
+import retrofit2.Call; // מייצג בקשת רשת שאפשר לשלוח
+import retrofit2.Callback; // הממשק שמאפשר לנו לקבל תשובה (הצלחה/כישלון)
+import retrofit2.Response; // מייצג את התשובה שחזרה מהשרת
+import retrofit2.Retrofit; // הספרייה הראשית לניהול תקשורת API
+import retrofit2.converter.gson.GsonConverterFactory; // כלי שממיר את המידע הגולמי (JSON) לאובייקטים ב-Java
 
-// זהו ה"מנהל" של האינטרנט באפליקציה.
-// הוא אחראי ליצור את החיבור פעם אחת ולבצע את הבקשות עבורנו.
+// המחלקה שמנהלת את כל התקשורת עם האינטרנט באפליקציה
 public class NetworkManager {
 
-    private static NetworkManager instance; // המופע היחיד של המנהל (Singleton)
-    private FinnhubService service;         // השליח שלנו
-    private static final String BASE_URL = "https://finnhub.io/api/v1/"; // הכתובת של Finnhub
+    // משתנה סטטי שמחזיק את המופע היחיד של המחלקה הזו (Singleton)
+    // המטרה: שלא ניצור חיבור חדש לאינטרנט בכל פעם, אלא נשתמש באותו אחד.
+    private static NetworkManager instance;
 
-    // בנאי פרטי: אף אחד לא יכול ליצור מנהל חדש חוץ מעצמו
+    // הממשק שמגדיר את הפקודות שאפשר לשלוח ל-Finnhub
+    private FinnhubApi api;
+
+    // כתובת הבסיס של ה-API (כל הבקשות יתחילו בכתובת הזו)
+    private static final String BASE_URL = "https://finnhub.io/api/v1/";
+
+    // המפתח הסודי  לשימוש ב-API
+    private static final String API_KEY = "d5k1i21r01qjaedsfnqgd5k1i21r01qjaedsfnr0";
+
+    // בנאי פרטי (Constructor)
+    // הוא פרטי כדי שאף אחד מחוץ למחלקה לא יוכל ליצור מופע חדש (new NetworkManager)
     private NetworkManager() {
         // כאן אנחנו בונים את ה"מכונה" של Retrofit
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()) // ממיר את ה-JSON של התשובה לאובייקטים
-                .build();
+                .baseUrl(BASE_URL) // מגדירים לאן פונים
+                .addConverterFactory(GsonConverterFactory.create()) // מגדירים איך מפענחים את התשובה (מ-JSON ל-Java)
+                .build(); // יוצרים את האובייקט
 
-        // יצירת השליח לפי ההוראות שכתבנו ב-FinnhubService
-        service = retrofit.create(FinnhubService.class);
+        // יוצרים את המימוש בפועל של הממשק FinnhubApi
+        api = retrofit.create(FinnhubApi.class);
     }
 
-    // פונקציה לקבלת המנהל (תמיד נחזיר את אותו אחד)
+    // פונקציה סטטית לקבלת המופע היחיד (Singleton)
+    // זו הדרך היחידה להשתמש במחלקה הזו מבחוץ
     public static synchronized NetworkManager getInstance() {
+        // אם המופע עדיין לא נוצר (פעם ראשונה שקוראים לפונקציה)
         if (instance == null) {
-            instance = new NetworkManager();
+            instance = new NetworkManager(); // יוצרים אותו עכשיו
         }
+        // מחזירים את המופע הקיים
         return instance;
     }
 
-    // --- הממשק לתשובה (Callback) ---
-    // כשאנחנו מבקשים מחיר, זה לוקח זמן. הממשק הזה הוא הדרך של המנהל
-    // "להתקשר אלינו חזרה" כשיש לו תשובה.
+    // --- הגדרת הממשק (Interface) לתשובה ---
+    // מכיוון שאינטרנט זה דבר איטי, אנחנו לא יכולים להחזיר תשובה מיד.
+    // הממשק הזה הוא כמו "כרטיס ביקור" שהמסך נותן לנו, ואנחנו מתקשרים אליו כשמוכנים.
     public interface StockCallback {
+        // פונקציה שתופעל אם הצלחנו להביא מחיר
         void onSuccess(double price, double changePercent);
+
+        // פונקציה שתופעל אם הייתה שגיאה
         void onError(String error);
     }
 
-    // --- הפונקציה הראשית: תביא לי מחיר! ---
-    public void getStockPrice(String symbol, String apiKey, StockCallback callback) {
+    // --- הפונקציה הראשית: בקשת מחיר מניה ---
+    // מקבלת את שם המניה (symbol) ואת ה"כרטיס ביקור" (callback) להחזרת תשובה
+    public void getStockPrice(String symbol, StockCallback callback) {
 
-        // שליחת השליח לעבודה (באופן אסינכרוני - ברקע)
-        service.getQuote(symbol, apiKey).enqueue(new Callback<StockQuote>() {
+        // שולחים בקשה לשרת בעזרת ה-API שיצרנו
+        // enqueue אומר: "תעשה את זה ברקע, אל תתקע את האפליקציה"
+        api.getQuote(symbol, API_KEY).enqueue(new Callback<StockQuote>() {
+
+            // הפונקציה הזו מופעלת אוטומטית כשהשרת עונה לנו
             @Override
             public void onResponse(Call<StockQuote> call, Response<StockQuote> response) {
-                // הבקשה חזרה! בוא נבדוק אם היא הצליחה
+                // בודקים אם התשובה תקינה (קוד 200) ואם יש בה תוכן
                 if (response.isSuccessful() && response.body() != null) {
-                    double price = response.body().getCurrentPrice();
-                    double change = response.body().getPercentChange();
-
-                    // קוראים לפונקציית ההצלחה של מי שביקש
-                    callback.onSuccess(price, change);
+                    // מודיעים להצלחה!
+                    // שולחים חזרה למסך את המחיר הנוכחי ואת אחוז השינוי
+                    callback.onSuccess(
+                            response.body().getCurrentPrice(),
+                            response.body().getPercentChange()
+                    );
                 } else {
-                    // משהו השתבש בצד השרת (למשל סמל לא נכון)
+                    // אם השרת ענה אבל עם שגיאה (למשל מניה לא קיימת)
                     callback.onError("Error: " + response.code());
                 }
             }
 
+            // הפונקציה הזו מופעלת אם התקשורת נכשלה לגמרי (אין אינטרנט למשל)
             @Override
             public void onFailure(Call<StockQuote> call, Throwable t) {
-                // משהו השתבש ברשת (אין אינטרנט וכו')
+                // מודיעים על כישלון רשת
                 callback.onError("Network Failure: " + t.getMessage());
             }
         });

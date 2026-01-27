@@ -1,81 +1,88 @@
 package com.example.thepatternanalyzer;
 
-// 1. ייבוא הספריות (הכלים) שאנחנו צריכים
-import android.graphics.Color; // מאפשר לשנות צבעים (ירוק לרווח, אדום להפסד)
-import android.os.Bundle;
-import android.util.Log; // מאפשר לכתוב הודעות למערכת (לצורך בדיקה ודיבוג)
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+// --- 1. ייבוא הספריות (Imports) ---
+// אלו הכלים שאנחנו מביאים מאנדרואיד ומ-Firebase כדי לבנות את המסך ולנהל נתונים.
+import android.graphics.Color; // מאפשר שימוש בצבעים (למשל ירוק לרווח, אדום להפסד)
+import android.os.Bundle; // משמש להעברת מידע בין מסכים ושמירת מצב
+import android.util.Log; // כלי לכתיבת הודעות לוג למפתחים (לצורך בדיקה ודיבוג)
+import android.view.LayoutInflater; // "מנפח" את קובץ ה-XML והופך אותו לתצוגה חיה (View)
+import android.view.View; // מייצג את המסך כולו או רכיב בתוכו
+import android.view.ViewGroup; // המיכל שמחזיק את ה-Views
 import android.widget.TextView; // רכיב להצגת טקסט על המסך
 import android.widget.Toast; // הודעה קופצת קטנה למשתמש
 
-// כלים בסיסיים של אנדרואיד לניהול מסכים (Fragments)
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView; // הרכיב שמציג את הרשימה הנגללת
+import androidx.annotation.NonNull; // מוודא שמשתנה לא יהיה ריק (Null)
+import androidx.annotation.Nullable; // מאפשר למשתנה להיות ריק
+import androidx.fragment.app.Fragment; // המחלקה הבסיסית של מסך משני בתוך האפליקציה
+import androidx.recyclerview.widget.LinearLayoutManager; // מסדר את הרשימה אחד מתחת לשני (טור)
+import androidx.recyclerview.widget.RecyclerView; // הרכיב שמציג רשימה נגללת ויעילה
 
-// הכלים של Firebase (הענן שלנו)
 import com.google.firebase.auth.FirebaseAuth; // ניהול המשתמשים (מי מחובר?)
 import com.google.firebase.firestore.DocumentSnapshot; // מייצג מסמך אחד מתוך המסד נתונים
-import com.google.firebase.firestore.FirebaseFirestore; // החיבור הראשי למסד הנתונים
+import com.google.firebase.firestore.FirebaseFirestore; // החיבור הראשי למסד הנתונים בענן
 
-// כלים לניהול רשימות וחישובים מתמטיים
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale; // מאפשר לפרמט טקסט (למשל להוסיף $ ולדייק נקודה עשרונית)
-import java.util.Map;
+import java.util.ArrayList; // סוג של רשימה חכמה ודינמית
+import java.util.Calendar; // כלי לניהול תאריכים (נוסף לצורך חישוב חודשי)
+import java.util.HashMap; // מבנה נתונים של מפתח-ערך (לחישוב סטטיסטיקות)
+import java.util.List; // הממשק הכללי של רשימות
+import java.util.Locale; // מאפשר לפרמט טקסט לפי אזור (למשל הוספת $ ונקודה עשרונית)
+import java.util.Map; // הממשק הכללי למבנה נתונים מפתח-ערך
 
-// המחלקה הראשית של הדשבורד (יורשת מ-Fragment כי זה חלק ממסך ראשי)
+// --- המחלקה הראשית של הדשבורד ---
+// מחלקה זו מנהלת את מסך הנתונים הראשי. היא יורשת מ-Fragment.
 public class DashboardFragment extends Fragment {
 
-    // --- הגדרת המשתנים (המגירות לרכיבי המסך) ---
+    // --- 1. משתנים לרכיבי המסך (UI) ---
 
     // כותרות ראשיות (המספרים הגדולים בכרטיסים)
-    private TextView tvProfitValue;      // הטקסט של הרווח הכולל ($1250)
-    private TextView tvWinRateValue;     // הטקסט של אחוזי ההצלחה (68%)
-    private TextView tvActiveValue;      // הטקסט של עסקאות פעילות (3)
-    private TextView tvTopPatternValue;  // הטקסט של התבנית המובילה (Momentum)
+    private TextView tvProfitValue;      // הטקסט שמציג את הרווח הכולל (P&L)
+    private TextView tvWinRateValue;     // הטקסט שמציג את אחוז ההצלחה (Win Rate)
+    private TextView tvActiveValue;      // הטקסט שמציג את מספר העסקאות הפעילות (Active)
+    private TextView tvTopPatternValue;  // הטקסט שמציג את התבנית המובילה (Top Pattern)
 
-    // כותרות משניות (הטקסט הקטן למטה)
-    private TextView tvProfitSubtitle;     // לדוגמה: "Based on 5 trades"
-    private TextView tvWinSubtitle;        // לדוגמה: "5 total trades"
-    private TextView tvTopPatternSubtitle; // לדוגמה: "$50.0 Avg"
+    // כותרות משניות (הטקסט הקטן בתחתית הכרטיסים)
+    private TextView tvProfitSubtitle;     // טקסט משני לרווח (כעת יציג רווח חודשי)
+    private TextView tvWinSubtitle;        // טקסט משני לאחוזי הצלחה (למשל: "X עסקאות סגורות")
 
-    // הרשימה הנגללת של העסקאות הפעילות
+    // הערה: משתנה זה הוא אופציונלי, תלוי אם הוספנו אותו ל-XML
+    private TextView tvTopPatternSubtitle; // טקסט משני לתבנית (למשל: רווח ממוצע לתבנית)
+
+    // הרשימה הנגללת שמציגה את העסקאות הפעילות ("Active Portfolio")
     private RecyclerView recyclerActiveTrades;
 
-    // משתנים לניהול הנתונים
-    private FirebaseFirestore db;   // החיבור למסד הנתונים
-    private FirebaseAuth auth;      // החיבור למשתמש
-    private DashboardTradesAdapter activeTradesAdapter; // המתאם שמחבר בין הנתונים לרשימה הויזואלית
-    private List<Trade> activeTradeList; // רשימה בזיכרון שתחזיק רק את העסקאות הפתוחות
+    // --- 2. משתנים לניהול הנתונים והלוגיקה ---
 
-    // בנאי ריק (חובה באנדרואיד כדי שהאפליקציה לא תקרוס)
+    private FirebaseFirestore db;   // האובייקט שמקשר אותנו למסד הנתונים Firestore
+    private FirebaseAuth auth;      // האובייקט שמנהל את האימות והמשתמש הנוכחי
+    private DashboardTradesAdapter activeTradesAdapter; // ה"מנהל" שמחבר בין רשימת העסקאות לתצוגה ב-RecyclerView
+    private List<Trade> activeTradeList; // רשימה בזיכרון שתחזיק רק את העסקאות הפתוחות (עבור התצוגה למטה)
+
+    // בנאי ריק (Constructor) - חובה באנדרואיד כדי שהאפליקציה תוכל ליצור את המסך מחדש
     public DashboardFragment() {
+        // בנאי ריק חובה
     }
 
-    // --- שלב 1: יצירת המראה (הציור) ---
+    // --- 3. יצירת המראה (onCreateView) ---
+    // פונקציה זו נקראת כשהמערכת צריכה לצייר את המסך בפעם הראשונה.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // "מנפח" (טוען) את קובץ ה-XML שיצרנו והופך אותו למסך אמיתי
+        // אנחנו "מנפחים" (Inflate) את קובץ ה-XML (העיצוב) והופכים אותו לאובייקטי Java
         return inflater.inflate(R.layout.fragment_dashboard, container, false);
     }
 
-    // --- שלב 2: המסך מוכן, מתחילים לעבוד ---
+    // --- 4. הפונקציה הראשית (onViewCreated) ---
+    // פונקציה זו נקראת מיד אחרי שהמסך נוצר ויש לנו גישה לרכיבים הגרפיים.
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // א. אתחול הכלים של Firebase
+        // א. אתחול הכלים של Firebase (כדי שנוכל לגשת לנתונים)
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
         // ב. חיבור המשתנים שלנו לרכיבים ב-XML לפי ה-ID שלהם
+        // אנחנו מוצאים כל TextView ו-RecyclerView לפי השם שנתנו לו בקובץ העיצוב
         tvProfitValue = view.findViewById(R.id.tvProfitValue);
         tvWinRateValue = view.findViewById(R.id.tvWinRateValue);
         tvActiveValue = view.findViewById(R.id.tvActiveValue);
@@ -83,81 +90,102 @@ public class DashboardFragment extends Fragment {
 
         tvProfitSubtitle = view.findViewById(R.id.tvProfitSubtitle);
         tvWinSubtitle = view.findViewById(R.id.tvWinSubtitle);
+
+        // מנסים למצוא את כותרת המשנה לתבנית (אם היא קיימת בעיצוב)
         tvTopPatternSubtitle = view.findViewById(R.id.tvTopPatternSubtitle);
 
         recyclerActiveTrades = view.findViewById(R.id.recyclerActiveTrades);
 
-        // ג. הגדרת הרשימה (מכינים אותה לקבלת נתונים)
+        // ג. הגדרת הרשימה (הכנת ה-Adapter וה-LayoutManager)
         setupRecyclerView();
 
-        // ד. הפעלת ההאזנה לענן (ברגע שזה רץ, הנתונים יתחילו לזרום)
+        // ד. הפעלת ההאזנה לנתונים (ברגע שזה רץ, הנתונים יתחילו לזרום ולהתעדכן)
         listenToData();
     }
 
-    // --- פונקציה להכנת הרשימה ---
+    // --- פונקציה להכנת רשימת העסקאות הפעילות ---
     private void setupRecyclerView() {
-        activeTradeList = new ArrayList<>(); // יוצרים רשימה ריקה בזיכרון
+        // יצירת רשימה ריקה בזיכרון שתכיל את הנתונים
+        activeTradeList = new ArrayList<>();
 
-        // יוצרים את המתאם ומעבירים לו גם פונקציה שתקרה כשלוחצים "סגור" (closePosition)
+        // יצירת המתאם (Adapter). אנחנו מעבירים לו את הרשימה, וגם פונקציה ("Callback")
+        // שתקרה כשמישהו ילחץ על כפתור "Close Position" בשורה כלשהי.
         activeTradesAdapter = new DashboardTradesAdapter(activeTradeList, trade -> closePosition(trade));
 
-        // מגדירים שהרשימה תהיה אנכית (אחד מתחת לשני)
+        // מגדירים איך הרשימה תיראה (רשימה אנכית פשוטה)
         recyclerActiveTrades.setLayoutManager(new LinearLayoutManager(getContext()));
-        // מחברים את המתאם לרכיב הויזואלי
+
+        // מחברים את המתאם לרשימה הוויזואלית במסך
         recyclerActiveTrades.setAdapter(activeTradesAdapter);
     }
 
-    // --- פונקציה לסגירת עסקה (כשלוחצים על הכפתור) ---
+    // --- עדכון קריטי: סגירת עסקה עם מחיר אמת! ---
     private void closePosition(Trade trade) {
-        if (auth.getCurrentUser() == null) return; // בדיקת אבטחה: אם אין משתמש, לא עושים כלום
+        // בדיקת אבטחה: אם המשתמש לא מחובר, לא עושים כלום
+        if (auth.getCurrentUser() == null) return;
 
-        // סימולציה: כרגע אין לנו מחיר שוק אמיתי, אז אנחנו ממציאים מחיר יציאה עם רווח קטן (5%)
-        // בעתיד נחליף את זה בקריאה ל-API
-        double dummyExitPrice = trade.getEntryPrice() * 1.05;
+        // מודיעים למשתמש שאנחנו בודקים את המחיר בשוק
+        Toast.makeText(getContext(), "Fetching market price for " + trade.getTicker() + "...", Toast.LENGTH_SHORT).show();
 
-        // שולחים פקודת עדכון ל-Firebase
-        db.collection("users").document(auth.getCurrentUser().getUid())
-                .collection("trades").document(trade.getId()) // הולכים למסמך הספציפי
-                .update("status", "CLOSED", "exitPrice", dummyExitPrice) // משנים סטטוס ומחיר יציאה
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Position Closed!", Toast.LENGTH_SHORT).show()) // הצלחה
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()); // כישלון
+        // 1. קריאה ל-API (NetworkManager) כדי לקבל את מחיר היציאה האמיתי בזמן אמת
+        NetworkManager.getInstance().getStockPrice(trade.getTicker(), new NetworkManager.StockCallback() {
+
+            // מה קורה כשהנתונים חוזרים מהשרת בהצלחה?
+            @Override
+            public void onSuccess(double currentPrice, double changePercent) {
+                // 2. קיבלנו מחיר! עכשיו מעדכנים את העסקה במסד הנתונים (Firebase)
+                // אנחנו ניגשים למסמך הספציפי של העסקה הזו
+                db.collection("users").document(auth.getCurrentUser().getUid())
+                        .collection("trades").document(trade.getId())
+                        .update("status", "CLOSED", "exitPrice", currentPrice) // משנים סטטוס לסגור ושומרים את מחיר המכירה
+                        .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Sold at $" + currentPrice, Toast.LENGTH_SHORT).show()) // הצלחה
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Error closing: " + e.getMessage(), Toast.LENGTH_SHORT).show()); // כישלון
+            }
+
+            // מה קורה אם הייתה שגיאה בקבלת המחיר (למשל אין אינטרנט)?
+            @Override
+            public void onError(String error) {
+                Toast.makeText(getContext(), "Failed to get price. Check internet.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    // --- פונקציה להאזנה לנתונים בזמן אמת ---
+    // --- פונקציה להאזנה לנתונים בזמן אמת מ-Firebase ---
     private void listenToData() {
+        // בדיקת אבטחה: האם יש משתמש מחובר?
         if (auth.getCurrentUser() == null) return;
         String userId = auth.getCurrentUser().getUid();
 
-        // שמים "מאזין" על התיקייה של הטריידים ב-Firebase
+        // אנחנו שמים "מאזין" (Listener) על תיקיית ה-trades של המשתמש.
+        // הפונקציה בתוך addSnapshotListener תרוץ בכל פעם שמשהו משתנה בנתונים!
         db.collection("users").document(userId).collection("trades")
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) return; // אם יש שגיאה בחיבור, עוצרים
+                    if (error != null) return; // אם יש שגיאה בחיבור, יוצאים
 
                     if (value != null) {
-                        // רשימה זמנית לכל הטריידים (גם פתוחים וגם סגורים) לצורך חישובים
-                        List<Trade> allTrades = new ArrayList<>();
+                        // יצירת רשימות זמניות לעבודה
+                        List<Trade> allTrades = new ArrayList<>(); // כל העסקאות (לחישובים)
+                        activeTradeList.clear(); // מנקים את הרשימה הפעילה לפני מילוי מחדש
 
-                        // מנקים את רשימת הפעילים כדי למלא מחדש
-                        activeTradeList.clear();
-
-                        // עוברים על כל המסמכים שהגיעו מהענן
+                        // לולאה שעוברת על כל המסמכים שהגיעו מהענן
                         for (DocumentSnapshot doc : value.getDocuments()) {
-                            // הופכים את המסמך לאובייקט Trade
+                            // הופכים את המסמך הגולמי לאובייקט Trade שלנו
                             Trade t = doc.toObject(Trade.class);
                             if (t != null) {
-                                t.setId(doc.getId()); // שומרים את ה-ID
+                                t.setId(doc.getId()); // שומרים את ה-ID של המסמך (חשוב לעדכון/מחיקה)
                                 allTrades.add(t); // מוסיפים לרשימה הכללית
 
-                                // אם הסטטוס הוא "OPEN", מוסיפים גם לרשימת הפעילים שמוצגת למטה
+                                // אם הסטטוס הוא "OPEN", מוסיפים גם לרשימה שמוצגת למטה בדשבורד
                                 if ("OPEN".equalsIgnoreCase(t.getStatus())) {
                                     activeTradeList.add(t);
                                 }
                             }
                         }
-                        // מעדכנים את הרשימה הויזואלית למטה
+
+                        // מודיעים למתאם שהרשימה השתנתה כדי שיעדכן את התצוגה
                         activeTradesAdapter.notifyDataSetChanged();
 
-                        // שולחים את כל הנתונים לחישוב הסטטיסטיקות (לכרטיסים למעלה)
+                        // שולחים את כל העסקאות לפונקציית החישוב שתעדכן את הכרטיסים למעלה
                         calculateAndDisplayData(allTrades);
                     }
                 });
@@ -165,14 +193,21 @@ public class DashboardFragment extends Fragment {
 
     // --- המוח המתמטי: חישוב הנתונים לכרטיסים ---
     private void calculateAndDisplayData(List<Trade> trades) {
-        double totalProfit = 0;      // סך כל הרווח
-        int closedTradesCount = 0;   // כמה עסקאות סגרנו סה"כ
-        int winningTrades = 0;       // כמה מהן היו רווחיות
-        int activeTradesCount = 0;   // כמה עסקאות פתוחות כרגע
+        // משתנים לצבירת נתונים
+        double totalProfit = 0;      // סך כל הרווח/הפסד
+        double monthlyProfit = 0;    // סך הרווח/הפסד לחודש הנוכחי (משתנה חדש לחישוב)
+        int closedTradesCount = 0;   // מספר העסקאות הסגורות בלבד
+        int winningTrades = 0;       // מספר העסקאות המרוויחות
+        int activeTradesCount = 0;   // מספר העסקאות הפעילות כרגע
 
-        // מפות עזר לחישובים מתקדמים
-        Map<String, Integer> patternCounts = new HashMap<>(); // איזה תבנית מופיעה הכי הרבה?
-        Map<String, Double> patternProfits = new HashMap<>(); // כמה כסף כל תבנית עשתה?
+        // קבלת הזמן הנוכחי כדי לחשב חודש נוכחי
+        Calendar currentCal = Calendar.getInstance();
+        int currentMonth = currentCal.get(Calendar.MONTH);
+        int currentYear = currentCal.get(Calendar.YEAR);
+
+        // מפות עזר לחישוב התבניות
+        Map<String, Integer> patternCounts = new HashMap<>(); // כמה פעמים הופיעה כל תבנית
+        Map<String, Double> patternProfits = new HashMap<>(); // כמה רווח עשתה כל תבנית
 
         // לולאה שעוברת על כל הטריידים אחד-אחד ומחשבת
         for (Trade trade : trades) {
@@ -180,37 +215,45 @@ public class DashboardFragment extends Fragment {
             if ("OPEN".equalsIgnoreCase(trade.getStatus())) {
                 activeTradesCount++;
             }
-            // 2. אם העסקה סגורה -> מחשבים רווחים
+            // 2. אם העסקה סגורה -> מחשבים סטטיסטיקות
             else if ("CLOSED".equalsIgnoreCase(trade.getStatus())) {
                 closedTradesCount++; // ספרנו עסקה סגורה
 
-                // חישוב הרווח: (מחיר יציאה פחות מחיר כניסה) כפול כמות המניות
+                // חישוב הרווח לעסקה: (מחיר יציאה - מחיר כניסה) * כמות המניות
                 double tradeProfit = (trade.getExitPrice() - trade.getEntryPrice()) * trade.getQuantity();
                 totalProfit += tradeProfit; // מוסיפים לסכום הכולל
 
-                // אם הרווח חיובי -> ספרנו ניצחון
+                // בדיקה אם העסקה התבצעה בחודש הנוכחי
+                Calendar tradeCal = Calendar.getInstance();
+                tradeCal.setTimeInMillis(trade.getTimestamp());
+                if (tradeCal.get(Calendar.MONTH) == currentMonth && tradeCal.get(Calendar.YEAR) == currentYear) {
+                    monthlyProfit += tradeProfit; // מוסיפים לסכום החודשי
+                }
+
+                // אם הרווח גדול מ-0 -> זו עסקה מנצחת
                 if (tradeProfit > 0) winningTrades++;
 
-                // שומרים נתונים לחישוב התבנית
+                // איסוף נתונים על התבנית (לצורך חישוב תבנית מובילה)
                 String pattern = trade.getPattern();
                 if (pattern != null && !pattern.isEmpty()) {
-                    // מוסיפים את הרווח של העסקה הזו לסך הרווחים של התבנית הספציפית
+                    // מוסיפים את הרווח של העסקה הזו לסך הרווחים של התבנית
                     patternProfits.put(pattern, patternProfits.getOrDefault(pattern, 0.0) + tradeProfit);
                 }
             }
 
-            // ספירת שימוש בתבנית (כדי לדעת מי הכי פופולרית)
+            // ספירת כמות השימוש בתבנית (גם בפתוחות וגם בסגורות)
             String pattern = trade.getPattern();
             if (pattern != null && !pattern.isEmpty()) {
+                // *** תיקון: שימוש ב-0 (מספר שלם) כברירת מחדל במקום 0.0 ***
                 patternCounts.put(pattern, patternCounts.getOrDefault(pattern, 0) + 1);
             }
         }
 
-        // --- מציאת התבנית המובילה ---
+        // --- מציאת התבנית המובילה (זו שהופיעה הכי הרבה פעמים) ---
         String topPattern = "N/A"; // ברירת מחדל
         int maxCount = 0;
 
-        // עוברים על כל התבניות ומחפשים למי יש הכי הרבה שימושים
+        // עוברים על המפה ובודקים למי יש הכי הרבה שימושים
         for (Map.Entry<String, Integer> entry : patternCounts.entrySet()) {
             if (entry.getValue() > maxCount) {
                 maxCount = entry.getValue();
@@ -218,64 +261,78 @@ public class DashboardFragment extends Fragment {
             }
         }
 
-        // חישוב הרווח הממוצע של התבנית המנצחת
+        // חישוב הרווח הממוצע לתבנית המובילה (רק אם מצאנו כזו)
         double topPatternAvgProfit = 0;
         if (!topPattern.equals("N/A") && patternCounts.containsKey(topPattern)) {
             double totalProfitForPattern = patternProfits.getOrDefault(topPattern, 0.0);
             int countForPattern = patternCounts.get(topPattern);
+
+            // ממוצע = סך הרווח מהתבנית / מספר הפעמים שהשתמשנו בה
             if (countForPattern > 0) {
                 topPatternAvgProfit = totalProfitForPattern / countForPattern;
             }
         }
 
         // --- חישוב אחוז ההצלחה (Win Rate) ---
-        // נוסחה: (מספר הנצחונות חלקי סך העסקאות הסגורות) כפול 100
+        // נוסחה: (מספר הנצחונות / סך העסקאות הסגורות) * 100
         int winRate = (closedTradesCount > 0) ? (int) (((double) winningTrades / closedTradesCount) * 100) : 0;
 
-        // --- עדכון המסך (הצגת התוצאות למשתמש) ---
+        // ============================
+        // עדכון המסך (UI) - הצגת התוצאות למשתמש
+        // ============================
 
-        // 1. Active (מספר עסקאות פתוחות)
+        // 1. עדכון כרטיס ACTIVE
         if (tvActiveValue != null) tvActiveValue.setText(String.valueOf(activeTradesCount));
 
-        // 2. Top Pattern (התבנית המובילה + רווח ממוצע)
+        // 2. עדכון כרטיס TOP PATTERN
         if (tvTopPatternValue != null) tvTopPatternValue.setText(topPattern);
 
+        // עדכון כותרת המשנה של התבנית (רווח ממוצע)
         if (tvTopPatternSubtitle != null) {
             if (topPattern.equals("N/A")) {
                 tvTopPatternSubtitle.setText("No trades yet");
             } else {
-                // מציג את הממוצע בדולרים
                 String avgText = String.format(Locale.US, "$%.2f Avg.", topPatternAvgProfit);
-                if (topPatternAvgProfit > 0) avgText = "+" + avgText; // מוסיף פלוס אם חיובי
+                // הוספת פלוס אם חיובי
+                if (topPatternAvgProfit > 0) avgText = "+" + avgText;
                 tvTopPatternSubtitle.setText(avgText);
 
-                // צובע בירוק או אדום
+                // צביעה בירוק או אדום לפי הרווח
                 if (topPatternAvgProfit >= 0) tvTopPatternSubtitle.setTextColor(Color.parseColor("#10B981"));
                 else tvTopPatternSubtitle.setTextColor(Color.parseColor("#EF4444"));
             }
         }
 
-        // 3. Win Rate (אחוזים + פירוט)
+        // 3. עדכון כרטיס WIN RATE
         if (tvWinRateValue != null) tvWinRateValue.setText(winRate + "%");
 
-        if (tvWinSubtitle != null) {
-            // מציג רק את כמות העסקאות הסגורות, כמו שביקשת
-            tvWinSubtitle.setText(closedTradesCount + " total trades");
-        }
+        // עדכון כותרת המשנה (כמות עסקאות סגורות)
+        if (tvWinSubtitle != null) tvWinSubtitle.setText(closedTradesCount + " total trades");
 
-        // 4. Profit (רווח כולל + צבעים)
+        // 4. עדכון כרטיס TOTAL P&L (רווח והפסד)
         if (tvProfitValue != null) {
+            // אם הרווח חיובי או אפס -> ירוק
             if (totalProfit >= 0) {
-                tvProfitValue.setTextColor(Color.parseColor("#10B981")); // ירוק
+                tvProfitValue.setTextColor(Color.parseColor("#10B981"));
                 tvProfitValue.setText("+$" + String.format(Locale.US, "%.2f", totalProfit));
             } else {
-                tvProfitValue.setTextColor(Color.parseColor("#EF4444")); // אדום
+                // אם הרווח שלילי -> אדום
+                tvProfitValue.setTextColor(Color.parseColor("#EF4444"));
                 tvProfitValue.setText("-$" + String.format(Locale.US, "%.2f", Math.abs(totalProfit)));
             }
         }
 
+        // עדכון כותרת המשנה של הרווח - מציג רווח/הפסד חודשי
         if (tvProfitSubtitle != null) {
-            tvProfitSubtitle.setText("Based on " + closedTradesCount + " closed trades");
+            String monthlyText = String.format(Locale.US, "$%.2f this month", Math.abs(monthlyProfit));
+            if (monthlyProfit >= 0) {
+                monthlyText = "+ " + monthlyText;
+                tvProfitSubtitle.setTextColor(Color.parseColor("#10B981")); // ירוק
+            } else {
+                monthlyText = "- " + monthlyText;
+                tvProfitSubtitle.setTextColor(Color.parseColor("#EF4444")); // אדום
+            }
+            tvProfitSubtitle.setText(monthlyText);
         }
     }
 }
