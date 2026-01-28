@@ -96,11 +96,28 @@ public class DashboardFragment extends Fragment {
 
         recyclerActiveTrades = view.findViewById(R.id.recyclerActiveTrades);
 
-        // ג. הגדרת הרשימה (הכנת ה-Adapter וה-LayoutManager)
+        // ג. איפוס התצוגה - מחיקת המספרים המזויפים מהעיצוב ($1250)
+        resetUI();
+
+        // ד. הגדרת הרשימה (הכנת ה-Adapter וה-LayoutManager)
         setupRecyclerView();
 
-        // ד. הפעלת ההאזנה לנתונים (ברגע שזה רץ, הנתונים יתחילו לזרום ולהתעדכן)
+        // ה. הפעלת ההאזנה לנתונים (ברגע שזה רץ, הנתונים יתחילו לזרום ולהתעדכן)
         listenToData();
+    }
+
+    // --- פונקציה לאיפוס התצוגה ההתחלתית ---
+    // פונקציה זו דואגת שלא נראה נתונים לא נכונים (מה-XML) בזמן שהאפליקציה טוענת
+    private void resetUI() {
+        if (tvProfitValue != null) tvProfitValue.setText("$0.00");
+        if (tvWinRateValue != null) tvWinRateValue.setText("0%");
+        if (tvActiveValue != null) tvActiveValue.setText("0");
+        if (tvTopPatternValue != null) tvTopPatternValue.setText("-");
+
+        // איפוס הכותרות הקטנות
+        if (tvProfitSubtitle != null) tvProfitSubtitle.setText("Loading data...");
+        if (tvWinSubtitle != null) tvWinSubtitle.setText("-");
+        if (tvTopPatternSubtitle != null) tvTopPatternSubtitle.setText("");
     }
 
     // --- פונקציה להכנת רשימת העסקאות הפעילות ---
@@ -110,13 +127,30 @@ public class DashboardFragment extends Fragment {
 
         // יצירת המתאם (Adapter). אנחנו מעבירים לו את הרשימה, וגם פונקציה ("Callback")
         // שתקרה כשמישהו ילחץ על כפתור "Close Position" בשורה כלשהי.
-        activeTradesAdapter = new DashboardTradesAdapter(activeTradeList, trade -> closePosition(trade));
+        activeTradesAdapter = new DashboardTradesAdapter(activeTradeList, trade -> closePosition(trade), totalOpenPnl -> updateOpenPnlCard(totalOpenPnl));
 
         // מגדירים איך הרשימה תיראה (רשימה אנכית פשוטה)
         recyclerActiveTrades.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // מחברים את המתאם לרשימה הוויזואלית במסך
         recyclerActiveTrades.setAdapter(activeTradesAdapter);
+    }
+
+    // --- פונקציה לעדכון כרטיס הרווח הפתוח (Open P&L) ---
+    private void updateOpenPnlCard(double totalOpenPnl) {
+        if (tvProfitValue == null) return;
+
+        // עדכון המספר הגדול עם הרווח הפתוח המחושב
+        tvProfitValue.setText(String.format(Locale.US, "$%.2f", totalOpenPnl));
+
+        // צביעה בירוק אם חיובי או אדום אם שלילי
+        if (totalOpenPnl >= 0) {
+            tvProfitValue.setTextColor(Color.parseColor("#10B981")); // ירוק
+            tvProfitValue.setText("+$" + String.format(Locale.US, "%.2f", totalOpenPnl));
+        } else {
+            tvProfitValue.setTextColor(Color.parseColor("#EF4444")); // אדום
+            tvProfitValue.setText("-$" + String.format(Locale.US, "%.2f", Math.abs(totalOpenPnl)));
+        }
     }
 
     // --- עדכון קריטי: סגירת עסקה עם מחיר אמת! ---
@@ -194,8 +228,7 @@ public class DashboardFragment extends Fragment {
     // --- המוח המתמטי: חישוב הנתונים לכרטיסים ---
     private void calculateAndDisplayData(List<Trade> trades) {
         // משתנים לצבירת נתונים
-        double totalProfit = 0;      // סך כל הרווח/הפסד
-        double monthlyProfit = 0;    // סך הרווח/הפסד לחודש הנוכחי (משתנה חדש לחישוב)
+        double monthlyRealizedProfit = 0; // סך הרווח/הפסד הממומש לחודש הנוכחי
         int closedTradesCount = 0;   // מספר העסקאות הסגורות בלבד
         int winningTrades = 0;       // מספר העסקאות המרוויחות
         int activeTradesCount = 0;   // מספר העסקאות הפעילות כרגע
@@ -221,13 +254,12 @@ public class DashboardFragment extends Fragment {
 
                 // חישוב הרווח לעסקה: (מחיר יציאה - מחיר כניסה) * כמות המניות
                 double tradeProfit = (trade.getExitPrice() - trade.getEntryPrice()) * trade.getQuantity();
-                totalProfit += tradeProfit; // מוסיפים לסכום הכולל
 
-                // בדיקה אם העסקה התבצעה בחודש הנוכחי
+                // בדיקה אם העסקה התבצעה בחודש הנוכחי (לצורך חישוב רווח חודשי)
                 Calendar tradeCal = Calendar.getInstance();
                 tradeCal.setTimeInMillis(trade.getTimestamp());
                 if (tradeCal.get(Calendar.MONTH) == currentMonth && tradeCal.get(Calendar.YEAR) == currentYear) {
-                    monthlyProfit += tradeProfit; // מוסיפים לסכום החודשי
+                    monthlyRealizedProfit += tradeProfit; // מוסיפים לסכום החודשי
                 }
 
                 // אם הרווח גדול מ-0 -> זו עסקה מנצחת
@@ -244,7 +276,6 @@ public class DashboardFragment extends Fragment {
             // ספירת כמות השימוש בתבנית (גם בפתוחות וגם בסגורות)
             String pattern = trade.getPattern();
             if (pattern != null && !pattern.isEmpty()) {
-                // *** תיקון: שימוש ב-0 (מספר שלם) כברירת מחדל במקום 0.0 ***
                 patternCounts.put(pattern, patternCounts.getOrDefault(pattern, 0) + 1);
             }
         }
@@ -310,22 +341,12 @@ public class DashboardFragment extends Fragment {
         if (tvWinSubtitle != null) tvWinSubtitle.setText(closedTradesCount + " total trades");
 
         // 4. עדכון כרטיס TOTAL P&L (רווח והפסד)
-        if (tvProfitValue != null) {
-            // אם הרווח חיובי או אפס -> ירוק
-            if (totalProfit >= 0) {
-                tvProfitValue.setTextColor(Color.parseColor("#10B981"));
-                tvProfitValue.setText("+$" + String.format(Locale.US, "%.2f", totalProfit));
-            } else {
-                // אם הרווח שלילי -> אדום
-                tvProfitValue.setTextColor(Color.parseColor("#EF4444"));
-                tvProfitValue.setText("-$" + String.format(Locale.US, "%.2f", Math.abs(totalProfit)));
-            }
-        }
+        // הערה: המספר הגדול (Open P&L) מתעדכן בנפרד בפונקציה updateOpenPnlCard בזמן אמת
 
-        // עדכון כותרת המשנה של הרווח - מציג רווח/הפסד חודשי
+        // עדכון כותרת המשנה של הרווח - מציג רווח/הפסד חודשי ממומש (Realized)
         if (tvProfitSubtitle != null) {
-            String monthlyText = String.format(Locale.US, "$%.2f this month", Math.abs(monthlyProfit));
-            if (monthlyProfit >= 0) {
+            String monthlyText = String.format(Locale.US, "$%.2f this month", Math.abs(monthlyRealizedProfit));
+            if (monthlyRealizedProfit >= 0) {
                 monthlyText = "+ " + monthlyText;
                 tvProfitSubtitle.setTextColor(Color.parseColor("#10B981")); // ירוק
             } else {

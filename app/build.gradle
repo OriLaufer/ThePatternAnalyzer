@@ -43,6 +43,8 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    implementation("com.google.guava:guava:31.1-android")
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
     // --- תוספת חדשה: Retrofit (לתקשורת עם API) ---
     // הספרייה הראשית שיוצרת את החיבור
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -52,4 +54,7 @@ dependencies {
     
     // ספריית Gson (כלי עזר להמרה)
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // --- תוספת חדשה: Gemini AI SDK ---
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
 }

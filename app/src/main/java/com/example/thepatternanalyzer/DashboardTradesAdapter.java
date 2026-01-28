@@ -9,8 +9,10 @@ import android.widget.Button; // רכיב כפתור
 import android.widget.TextView; // רכיב להצגת טקסט
 import androidx.annotation.NonNull; // מוודא שפרמטר לא יהיה ריק
 import androidx.recyclerview.widget.RecyclerView; // הרכיב שמציג רשימה נגללת יעילה
+import java.util.HashMap; // מבנה נתונים לשמירת זוגות מפתח-ערך (עבור ה-PnL לכל מניה)
 import java.util.List; // ממשק לרשימת נתונים
 import java.util.Locale; // לפרמוט טקסטים (כמו הוספת סימן דולר וכדומה)
+import java.util.Map; // ממשק למבנה נתונים מפה
 
 // --- המחלקה הראשית של המתאם (Adapter) ---
 // המתאם אחראי לקחת את הנתונים (רשימת הטריידים) ולהציג אותם בתוך ה-RecyclerView בדשבורד.
@@ -22,17 +24,31 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
     // מאזין (Listener) לאירועים - כדי שנוכל לדעת מתי המשתמש לחץ על כפתור "סגור עסקה"
     private OnTradeActionListener actionListener;
 
-    // --- הגדרת הממשק (Interface) ---
-    // זהו "חוזה" שמאפשר לפרגמנט (DashboardFragment) לקבל עדכון כשלוחצים על כפתור בתוך הרשימה.
+    // מאזין (Listener) חדש לעדכון רווח כולל (כדי לעדכן את הדשבורד למעלה ברווח הפתוח)
+    private OnPnlUpdateListener pnlListener;
+
+    // מפה לשמירת הרווח של כל מניה בנפרד (המפתח הוא ה-ID של העסקה, הערך הוא הרווח שלה)
+    // זה נחוץ כדי שנוכל לסכום את כל הרווחים של כל השורות בזמן אמת
+    private Map<String, Double> currentPnls = new HashMap<>();
+
+    // --- הגדרת הממשק (Interface) לפעולות מסחר ---
+    // זהו "חוזה" שמאפשר לפרגמנט לקבל עדכון כשלוחצים על כפתור בתוך הרשימה.
     public interface OnTradeActionListener {
         void onClosePosition(Trade trade); // פונקציה שתופעל כשלוחצים על "Close Position"
     }
 
+    // --- הגדרת הממשק (Interface) לעדכון רווח ---
+    // זהו "חוזה" שמאפשר לפרגמנט לקבל את הסכום הכולל של הרווח הפתוח מכל השורות.
+    public interface OnPnlUpdateListener {
+        void onTotalPnlUpdated(double totalOpenPnl); // פונקציה שתופעל כשסכום הרווחים משתנה
+    }
+
     // --- בנאי (Constructor) ---
-    // מקבל את רשימת הטריידים ואת המאזין מהפרגמנט
-    public DashboardTradesAdapter(List<Trade> tradeList, OnTradeActionListener actionListener) {
+    // מקבל את רשימת הטריידים ואת המאזינים מהפרגמנט ומאתחל את המשתנים
+    public DashboardTradesAdapter(List<Trade> tradeList, OnTradeActionListener actionListener, OnPnlUpdateListener pnlListener) {
         this.tradeList = tradeList;
         this.actionListener = actionListener;
+        this.pnlListener = pnlListener;
     }
 
     // --- יצירת "קופסה" לשורה חדשה (ViewHolder) ---
@@ -53,8 +69,10 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
         // שליפת הטרייד הנוכחי מהרשימה לפי המיקום (position)
         Trade trade = tradeList.get(position);
 
-        // 1. הגדרת הלוגו ושם המניה
+        // שליפת שם המניה (Ticker)
         String ticker = trade.getTicker();
+
+        // בדיקה שהשם לא ריק לפני שמציגים אותו
         if (ticker != null) {
             // בלוגו העגול נציג רק את ההתחלה של השם (עד 4 תווים) כדי שייכנס יפה
             holder.tvDashLogo.setText(ticker.length() > 4 ? ticker.substring(0, 4) : ticker);
@@ -62,34 +80,36 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
             holder.tvDashTicker.setText("$" + ticker);
         }
 
-        // 2. הגדרת פרטי העסקה (כמות ומחיר כניסה)
-        // String.format יוצר טקסט מעוצב: %d למספר שלם (כמות), %.2f למספר עשרוני עם 2 ספרות (מחיר)
+        // הגדרת פרטי העסקה (כמות ומחיר כניסה) בפורמט קריא
         String details = String.format(Locale.US, "%d shares @ $%.2f", trade.getQuantity(), trade.getEntryPrice());
         holder.tvDashDetails.setText(details);
 
         // --- חיבור לנתוני אמת מה-API! ---
-        // כאן אנחנו משתמשים ב-NetworkManager כדי לקבל את המחיר העדכני של המניה מהאינטרנט
 
-        // שלב א': הצגת מצב טעינה זמני עד שהנתונים יגיעו
-        holder.tvDashProfit.setText("Loading...");
-        holder.tvDashPercent.setText("...");
+        // שלב א': הצגת מצב טעינה זמני עד שהנתונים יגיעו מהאינטרנט
+        holder.tvDashProfit.setText("..."); // שלוש נקודות במקום מחיר
         holder.tvDashProfit.setTextColor(Color.GRAY); // צבע אפור ניטרלי
 
-        // שלב ב': שליחת הבקשה ל-API
+        // שלב ב': שליחת הבקשה ל-API לקבלת מחיר עדכני
         NetworkManager.getInstance().getStockPrice(ticker, new NetworkManager.StockCallback() {
 
             // פונקציה זו תופעל כשהנתונים יחזרו בהצלחה מהאינטרנט
             @Override
             public void onSuccess(double currentPrice, double changePercent) {
-                // חישוב הרווח/הפסד (P&L) בזמן אמת:
-                // (מחיר נוכחי - מחיר כניסה) * כמות המניות
+                // חישוב הרווח/הפסד (P&L) בזמן אמת: (מחיר נוכחי - מחיר כניסה) * כמות
                 double pnl = (currentPrice - trade.getEntryPrice()) * trade.getQuantity();
 
-                // חישוב אחוז הרווח/הפסד:
+                // עדכון המפה עם הרווח החדש של העסקה הזו (לצורך חישוב הסכום הכולל למעלה)
+                currentPnls.put(trade.getId(), pnl);
+
+                // קריאה לפונקציה שמחשבת את הסכום הכולל ומודיעה לדשבורד
+                calculateTotalOpenPnl();
+
+                // חישוב אחוז הרווח/הפסד ביחס להשקעה
                 double investment = trade.getEntryPrice() * trade.getQuantity(); // סך ההשקעה
                 double percent = 0;
                 if (investment != 0) {
-                    percent = (pnl / investment) * 100; // (רווח / השקעה) * 100
+                    percent = (pnl / investment) * 100; // נוסחת האחוזים
                 }
 
                 // עדכון הצבעים והטקסט לפי התוצאה (חיובי/שלילי)
@@ -112,8 +132,7 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
             // פונקציה זו תופעל אם הייתה שגיאה בקבלת הנתונים
             @Override
             public void onError(String error) {
-                holder.tvDashProfit.setText("N/A"); // הצגת "לא זמין"
-                holder.tvDashPercent.setText("-");
+                // במקרה שגיאה לא מעדכנים את ה-P&L הכללי
             }
         });
 
@@ -124,6 +143,19 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
                 actionListener.onClosePosition(trade); // מעבירים את הטרייד שרוצים לסגור
             }
         });
+    }
+
+    // פונקציה פרטית שמחשבת את סך כל הרווחים הפתוחים מכל השורות
+    private void calculateTotalOpenPnl() {
+        double total = 0; // אתחול הסכום לאפס
+        // לולאה שעוברת על כל הרווחים שנשמרו במפה
+        for (Double val : currentPnls.values()) {
+            total += val; // הוספת הרווח של כל מניה לסכום הכולל
+        }
+        // אם יש מי שמקשיב לעדכון (הדשבורד), שולחים לו את הסכום החדש
+        if (pnlListener != null) {
+            pnlListener.onTotalPnlUpdated(total);
+        }
     }
 
     // --- החזרת מספר הפריטים ברשימה ---
@@ -140,6 +172,7 @@ public class DashboardTradesAdapter extends RecyclerView.Adapter<DashboardTrades
         TextView tvDashLogo, tvDashTicker, tvDashDetails, tvDashProfit, tvDashPercent;
         Button btnClosePosition;
 
+        // בנאי ה-ViewHolder
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             // חיבור כל משתנה לרכיב המתאים בקובץ העיצוב item_dashboard_trade.xml
